@@ -1,0 +1,180 @@
+# Lab 1 – Data Collection, Enrichment, and Cleaning of SpaceX Launch Records
+# General Objective
+# Transform raw launch data retrieved from the SpaceX API into an enriched, filtered, and cleaned DataFrame—ready for exploratory analysis, narrative visualization, and institutional defense.
+
+# Module 1: Import Libraries and Configure Environment
+import requests
+import pandas as pd
+import numpy as np
+import datetime
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_colwidth', None)
+# Enables full visibility of columns and content for exploratory auditing.
+
+# Module 2: Static Request and JSON Parsing
+static_json_url = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DS0321EN-SkillsNetwork/datasets/API_call_spacex_api.json'
+
+response = requests.get(static_json_url)
+spacex_data = response.json()
+
+# ✅ Validación explícita de respuesta HTTP
+assert response.status_code == 200, f"Error en la solicitud: {response.status_code}"
+
+print(f" Total launches retrieved from URL: {len(spacex_data)}")
+# 📎 Uses a static URL to ensure consistent results across sessions.
+
+# 🧮 Module 3: Convert to DataFrame and Validate Structure
+
+try:
+    response = requests.get(static_json_url)
+    response.raise_for_status()
+    launches_json = response.json()
+    source = "Static URL"
+except Exception:
+    with open("API_call_spacex_api.json", "r") as file:
+        launches_json = json.load(file)
+    source = "Local file"
+
+df_launches = pd.json_normalize(launches_json)
+
+print(f" Data source: {source}")
+print(f" DataFrame created with {df_launches.shape[0]} rows and {df_launches.shape[1]} columns")
+df_launches.head(2)
+
+# 🧠 Auditoría estructural del DataFrame original
+print("🔍 Estructura del DataFrame antes de limpieza:")
+df_launches.info()
+
+#📎 Converts JSON into a flat DataFrame and validates its shape.
+
+# 🧬 Module 4: Prepare for External Enrichment
+data = df_launches[['rocket', 'payloads', 'launchpad', 'cores', 'flight_number', 'date_utc']]
+data = data[data['cores'].map(len) == 1]
+data = data[data['payloads'].map(len) == 1]
+data['cores'] = data['cores'].map(lambda x: x[0])
+data['payloads'] = data['payloads'].map(lambda x: x[0])
+data['date'] = pd.to_datetime(data['date_utc']).dt.date
+
+print(f"DataFrame ready for enrichment: {data.shape[0]} rows, {data.shape[1]} columns.")
+data.head()
+#📎 Filters simple missions and normalizes lists for ID-based enrichment.
+
+# 🧰 Module 5: Define Helper Functions
+
+def getBoosterVersion(data):
+    for x in data['rocket']:
+        if x:
+            response = requests.get(f"https://api.spacexdata.com/v4/rockets/{x}").json()
+            BoosterVersion.append(response['name'])
+
+def getLaunchSite(data):
+    for x in data['launchpad']:
+        if x:
+            response = requests.get(f"https://api.spacexdata.com/v4/launchpads/{x}").json()
+            Longitude.append(response['longitude'])
+            Latitude.append(response['latitude'])
+            LaunchSite.append(response['name'])
+
+def getPayloadData(data):
+    for load in data['payloads']:
+        if load:
+            response = requests.get(f"https://api.spacexdata.com/v4/payloads/{load}").json()
+            PayloadMass.append(response['mass_kg'])
+            Orbit.append(response['orbit'])
+
+def getCoreData(data):
+    for core in data['cores']:
+        if core['core'] is not None:
+            response = requests.get(f"https://api.spacexdata.com/v4/cores/{core['core']}").json()
+            Block.append(response['block'])
+            ReusedCount.append(response['reuse_count'])
+            Serial.append(response['serial'])
+        else:
+            Block.append(None)
+            ReusedCount.append(None)
+            Serial.append(None)
+        Outcome.append(f"{core['landing_success']} {core['landing_type']}")
+        Flights.append(core['flight'])
+        GridFins.append(core['gridfins'])
+        Reused.append(core['reused'])
+        Legs.append(core['legs'])
+        LandingPad.append(core['landpad'])
+# 📎 Each function transforms IDs into technical context: rockets, payloads, launchpads, and cores.
+
+# 📊 Module 6: Initialize Global Variables
+
+BoosterVersion = []
+PayloadMass = []
+Orbit = []
+LaunchSite = []
+Outcome = []
+Flights = []
+GridFins = []
+Reused = []
+Legs = []
+LandingPad = []
+Block = []
+ReusedCount = []
+Serial = []
+Longitude = []
+Latitude = []
+# 📎 These lists will store enriched data for each launch.
+
+# 🔄 Module 7: Apply Functions and Validate Consistency
+getBoosterVersion(data)
+getLaunchSite(data)
+getPayloadData(data)
+getCoreData(data)
+
+print(len(data['flight_number']), len(PayloadMass), len(Orbit), len(LaunchSite))
+#📎 Ensures all enrichment lists match the number of launch records.
+
+# 🧠 Module 8: Create Enriched DataFrame
+
+launch_dict = {
+    'FlightNumber': list(data['flight_number']),
+    'Date': list(data['date']),
+    'BoosterVersion': BoosterVersion,
+    'PayloadMass': PayloadMass,
+    'Orbit': Orbit,
+    'LaunchSite': LaunchSite,
+    'Outcome': Outcome,
+    'Flights': Flights,
+    'GridFins': GridFins,
+    'Reused': Reused,
+    'Legs': Legs,
+    'LandingPad': LandingPad,
+    'Block': Block,
+    'ReusedCount': ReusedCount,
+    'Serial': Serial,
+    'Longitude': Longitude,
+    'Latitude': Latitude
+}
+
+launch_df = pd.DataFrame(launch_dict)
+print(f"Final DataFrame created: {launch_df.shape[0]} rows, {launch_df.shape[1]} columns.")
+launch_df.head()
+# 📎 Builds a structured DataFrame with 17 technical dimensions per launch.
+
+#📉 Module 9: Descriptive Statistics
+launch_df.describe()
+# 📎 Provides basic metrics for numerical variables.
+
+🚀 Module 10: Filter Falcon 9 Missions
+data_falcon9 = launch_df[launch_df['BoosterVersion'] == 'Falcon 9']
+print(f"Falcon 9 missions: {data_falcon9.shape[0]} rows.")
+# 📎 Focuses analysis on Falcon 9 missions by excluding Falcon 1.
+
+# 🔁 Module 11: Reindex and Handle Missing Values
+
+data_falcon9.loc[:, 'FlightNumber'] = list(range(1, data_falcon9.shape[0] + 1))
+
+payload_mass_mean = data_falcon9['PayloadMass'].mean()
+data_falcon9.loc[:, 'PayloadMass'] = data_falcon9['PayloadMass'].replace(np.nan, payload_mass_mean)
+# 📎 Reindexes FlightNumber and imputes missing PayloadMass values with the mean.
+
+# 💾 Module 12: Export Clean Dataset
+
+data_falcon9.to_csv('dataset_part_1.csv', index=False)
+#📎 Saves the cleaned and filtered DataFrame for use in the next lab.
