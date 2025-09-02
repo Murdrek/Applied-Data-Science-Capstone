@@ -1,0 +1,257 @@
+# Install core libraries using piplite (for Pyodide environments)
+import piplite
+await piplite.install(['numpy'])
+await piplite.install(['pandas'])
+await piplite.install(['seaborn'])
+
+# 📦 Import Core Libraries
+# pandas: Data manipulation and analysis library
+import pandas as pd
+
+# numpy: Support for multi-dimensional arrays and mathematical operations
+import numpy as np
+
+# matplotlib.pyplot: Plotting framework similar to MATLAB
+import matplotlib.pyplot as plt
+
+# seaborn: High-level statistical data visualization built on matplotlib
+import seaborn as sns
+
+# 🔍 Exploratory Data Analysis (EDA)
+# 📥 Load Dataset from Remote Source
+# Load CSV from IBM Skills Network cloud storage using Pyodide's fetch
+from js import fetch
+import io
+
+# Define dataset URL
+URL = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DS0321EN-SkillsNetwork/datasets/dataset_part_2.csv"
+
+# Asynchronously fetch and read the CSV into a Pandas DataFrame
+resp = await fetch(URL)
+dataset_part_2_csv = io.BytesIO((await resp.arrayBuffer()).to_py())
+df = pd.read_csv(dataset_part_2_csv)
+
+# Preview the first 5 rows
+df.head(5)
+
+# 📊 Flight Experience vs. Payload Mass and Launch Outcome
+# 🎯 Objective
+# Visualize how Flight Number (proxy for accumulated launch experience) and Payload Mass relate to the launch outcome (Class), where:
+
+# Class = 1 → Successful landing of the first stage
+
+# Class = 0 → Failure to land
+
+# 📈 Categorical Plot: Flight Number vs. Payload Mass
+
+# Visualize launch outcome across flight number and payload mass
+sns.catplot(
+    y="PayloadMass", 
+    x="FlightNumber", 
+    hue="Class", 
+    data=df, 
+    aspect=5
+)
+
+# Axis labels for clarity
+plt.xlabel("Flight Number", fontsize=20)
+plt.ylabel("Payload Mass (kg)", fontsize=20)
+plt.show()
+
+# 📍 Launch Site vs. Flight Experience and Outcome
+# 🎯 Objective
+# Visualize the relationship between Flight Number, Launch Site, and Launch Outcome (Class) to identify patterns across geographic locations and operational maturity.
+
+# 📈 Categorical Plot: Flight Number vs. Launch Site
+# Visualize launch outcomes across flight number and launch site
+sns.catplot(
+    x="FlightNumber", 
+    y="LaunchSite", 
+    hue="Class", 
+    data=df, 
+    aspect=2, 
+    height=6
+)
+
+# Axis labels for clarity
+plt.xlabel("Flight Number", fontsize=16)
+plt.ylabel("Launch Site", fontsize=16)
+plt.title("Launch Outcome by Flight Number and Site", fontsize=18)
+plt.show()
+
+# 🚀 Payload Mass vs. Launch Site and Outcome
+# 🎯 Objective
+# Visualize how Payload Mass varies across Launch Sites, and whether there's a relationship between payload weight and launch outcome (Class).
+
+# 📈 Strip Plot: Payload Mass vs. Launch Site
+
+
+# Scatter-style visualization of payload mass across launch sites and outcomes
+sns.stripplot(
+    x="PayloadMass", 
+    y="LaunchSite", 
+    hue="Class", 
+    data=df
+)
+
+# Axis labels and title
+plt.xlabel("Payload Mass (kg)", fontsize=16)
+plt.ylabel("Launch Site", fontsize=16)
+plt.title("Launch Outcome by Payload Mass and Site", fontsize=18)
+plt.show()
+
+# 🛰️ Success Rate by Orbit Type
+# 🎯 Objective
+# Visualize the average success rate (Class) for each orbit type to identify which orbital configurations are most reliably achieved.
+#📊 Bar Chart: Success Rate per Orbit
+
+# Calculate mean success rate per orbit type
+orbit_success = df.groupby("Orbit")["Class"].mean().reset_index()
+
+# Sort for visual clarity
+orbit_success = orbit_success.sort_values(by="Class", ascending=False)
+
+# Plot bar chart
+sns.barplot(x="Class", y="Orbit", data=orbit_success, palette="viridis")
+
+# Axis labels and title
+plt.xlabel("Success Rate", fontsize=16)
+plt.ylabel("Orbit Type", fontsize=16)
+plt.title("Launch Success Rate by Orbit Type", fontsize=18)
+plt.show()
+
+# 🧭 Flight Experience vs. Orbit Type and Launch Outcome
+# 🎯 Objective
+# Visualize the relationship between Flight Number, Orbit Type, and Launch Outcome (Class) to assess how mission complexity and experience interact over tiempo.
+# Scatter-style visualization of flight experience across orbit types and outcomes
+sns.stripplot(
+    x="FlightNumber", 
+    y="Orbit", 
+    hue="Class", 
+    data=df
+)
+
+# Axis labels and title
+plt.xlabel("Flight Number", fontsize=16)
+plt.ylabel("Orbit Type", fontsize=16)
+plt.title("Launch Outcome by Flight Number and Orbit", fontsize=18)
+plt.show()
+
+# 🛰️ Payload Mass vs. Orbit Type and Launch Outcome
+# 🎯 Objective
+# Visualize the relationship between Payload Mass, Orbit Type, and Launch Outcome (Class) to assess how mission complexity and orbital configuration interact.
+# 📈 Strip Plot: Payload Mass vs. Orbit
+# Scatter-style visualization of payload mass across orbit types and outcomes
+
+sns.stripplot(
+    x="PayloadMass", 
+    y="Orbit", 
+    hue="Class", 
+    data=df
+)
+
+# Axis labels and title
+plt.xlabel("Payload Mass (kg)", fontsize=16)
+plt.ylabel("Orbit Type", fontsize=16)
+plt.title("Launch Outcome by Payload Mass and Orbit", fontsize=18)
+plt.show()
+
+# 📈 Yearly Launch Success Trend
+# 🎯 Objective
+# Visualize the average launch success rate per year to assess SpaceX’s performance evolution and institutional learning curve.
+
+# 🗓️ Extract Year from Date
+
+# Extract year from date string and overwrite the 'Date' column
+year = []
+
+def Extract_year():
+    for i in df["Date"]:
+        year.append(i.split("-")[0])
+    return year
+
+Extract_year()
+df['Date'] = year  # Overwrite with extracted year
+df.head()
+
+# 📈 Yearly Launch Success Rate
+# 🎯 Objective
+# Plot a line chart showing the average success rate (Class) for each year, extracted from the Date column.
+
+# 📊 Line Plot: Success Rate by Year
+# Group by year and calculate average success rate
+yearly_success = df.groupby("Date")["Class"].mean().reset_index()
+yearly_success["Date"] = yearly_success["Date"].astype(int)  # Convert year to integer
+
+# Plot the trend line
+sns.lineplot(x="Date", y="Class", data=yearly_success, marker="o")
+
+# Axis labels and title
+plt.xlabel("Year", fontsize=16)
+plt.ylabel("Average Success Rate", fontsize=16)
+plt.title("Yearly Launch Success Trend", fontsize=18)
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.show()
+
+# 🧠 Feature Engineering: Variable Selection for Success Prediction
+# 🎯 Objective
+# Select and structure the key features that will be used to predict launch success (Class) in future modeling modules.
+# Select relevant features for predictive modeling
+features = df[[
+    'FlightNumber', 
+    'PayloadMass', 
+    'Orbit', 
+    'LaunchSite', 
+    'Flights', 
+    'GridFins', 
+    'Reused', 
+    'Legs', 
+    'LandingPad', 
+    'Block', 
+    'ReusedCount', 
+    'Serial'
+]]
+
+# Preview the feature set
+features.head()
+
+
+# 🧠 Feature Engineering: One-Hot Encoding of Categorical Variables
+# 🎯 Objective
+# Apply One-Hot Encoding to the following categorical columns:
+
+# Orbit
+# LaunchSite
+# LandingPad
+# Serial
+# This transformation ensures compatibility with predictive models that require numeric input.
+# 🛠️ Apply get_dummies() to Categorical Features
+# Apply One-Hot Encoding to selected categorical columns
+features_one_hot = pd.get_dummies(
+    features, 
+    columns=['Orbit', 'LaunchSite', 'LandingPad', 'Serial']
+)
+
+# Preview the transformed feature set
+features_one_hot.head()
+
+
+
+# 🔧 Feature Engineering: Cast Numeric Columns to float64
+# 🎯 Objective
+# Ensure all columns in features_one_hot are cast to float64 for compatibility with modeling pipelines and numerical operations.
+# 🛠️ Apply astype(float) to Entire DataFrame
+# Cast all columns to float64
+features_one_hot = features_one_hot.astype('float64')
+
+# Preview the result
+features_one_hot.head()
+
+# 📤 Export Features to CSV
+# 🎯 Objective
+# Save the processed one-hot encoded features to a CSV file for use in the next lab, which will operate within a pre-selected date range to ensure consistency across answers and reproducibility.
+# 🛠️ Code Block
+
+# Export one-hot encoded features to CSV
+features_one_hot.to_csv('dataset_part_3.csv', index=False)
