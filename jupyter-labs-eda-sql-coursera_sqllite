@@ -1,0 +1,151 @@
+# Installing SQLAlchemy version 1.3.9
+# Rationale: This version ensures compatibility with legacy workflows and avoids conflicts with ORM mappings in institutional environments.
+# Recommendation: Validate the installed version to guarantee reproducibility and traceability.
+!pip install sqlalchemy==1.3.9
+import sqlalchemy
+
+# Connect to the database
+# Let us first load the SQL extension and establish a connection with the database
+!pip install ipython-sql
+!pip install ipython-sql prettytable
+
+# Load the ipython-sql extension to enable SQL queries within notebook cells
+# This step activates the magic command interface for seamless database interaction
+%load_ext sql
+
+# Import essential libraries for database interaction and output formatting
+import csv, sqlite3
+import prettytable
+
+# Set PrettyTable default style for consistent tabular output
+prettytable.DEFAULT = 'DEFAULT'
+
+# Establish connection to local SQLite database
+# This creates or opens 'my_data1.db' for structured data storage and querying
+con = sqlite3.connect("my_data1.db")
+cur = con.cursor()
+
+# Drop the existing table if it exists to avoid conflicts during reinitialization
+# This ensures a clean slate for reproducible data ingestion and query execution
+%sql DROP TABLE IF EXISTS SPACEXTABLE;
+
+# Connect to the SQLite database using ipython-sql magic
+# This enables direct SQL queries within notebook cells
+# The database file 'my_data1.db' will store all structured outputs for audit and reproducibility
+%sql sqlite:///my_data1.db
+
+# Create a new table 'SPACEXTABLE' by selecting non-null entries from 'SPACEXTBL'
+# Purpose: Ensures the resulting dataset excludes incomplete records, improving data integrity and auditability
+%sql create table SPACEXTABLE as select * from SPACEXTBL where Date is not null
+
+# Task 1: Retrieve unique launch site names from the space mission dataset
+# Rationale: Identifying distinct launch sites helps establish spatial diversity in mission planning
+# Note: Mixed-case column names require double quotes for SQL compatibility
+%sql SELECT DISTINCT "Launch_Site" FROM SPACEXTABLE;
+ * sqlite:///my_data1.db
+Done.
+
+# Task 2: Display 5 records where launch sites begin with 'CCA'
+# Purpose: Filter missions launched from Cape Canaveral-related sites
+# Note: Double quotes are used for mixed-case column names to ensure SQL compatibility
+%%sql
+SELECT * FROM SPACEXTABLE
+WHERE "Launch_Site" LIKE 'CCA%'
+LIMIT 5;
+ * sqlite:///my_data1.db
+Done.
+
+# Inspect the schema of the original table 'SPACEXTBL'
+# Purpose: Confirm column names and types before constructing analytical queries
+# Note: This step supports reproducibility and prevents errors due to case sensitivity or naming inconsistencies
+%%sql
+PRAGMA table_info(SPACEXTBL);
+
+* sqlite:///my_data1.db
+Done.
+
+# Task 4: Calculate average payload mass for booster version F9 v1.1
+# Purpose: Assess payload efficiency and consistency across missions using this booster
+# Note: Column name 'PAYLOAD_MASS__KG_' is case-sensitive and must match schema exactly
+%%sql
+SELECT AVG(PAYLOAD_MASS__KG_)
+FROM SPACEXTBL
+WHERE booster_version LIKE 'F9 v1.1%';
+ * sqlite:///my_data1.db
+Done.
+
+# Task 5: Identify the earliest successful ground pad landing
+# Purpose: Establish historical benchmark for mission recovery success
+# Method: Use MIN(Date) to extract the first occurrence of 'Success (ground pad)' in Landing_Outcome
+%%sql
+SELECT MIN(Date)
+FROM SPACEXTBL
+WHERE Landing_Outcome LIKE '%Success (ground pad)%';
+
+* sqlite:///my_data1.db
+Done.
+
+# Task 6: List boosters with successful drone ship landings and payload mass between 4000 and 6000 kg
+# Purpose: Identify high-performing boosters with mid-range payloads and successful recovery
+# Method: Filter by Landing_Outcome and apply a BETWEEN clause on PAYLOAD_MASS__KG_
+%%sql
+SELECT Booster_Version
+FROM SPACEXTBL
+WHERE Landing_Outcome LIKE '%Success (drone ship)%'
+  AND PAYLOAD_MASS__KG_ BETWEEN 4000 AND 6000;
+* sqlite:///my_data1.db
+Done.
+
+# Task 7: Count total mission outcomes by category (success/failure)
+# Purpose: Summarize operational performance and identify patterns in mission results
+# Method: Group by 'Mission_Outcome' and count occurrences
+%%sql
+SELECT Mission_Outcome, COUNT(*) AS Total
+FROM SPACEXTBL
+GROUP BY Mission_Outcome;
+* sqlite:///my_data1.db
+Done.
+
+# Task 8: Identify booster versions that carried the maximum payload mass
+# Purpose: Highlight top-performing boosters in terms of payload capacity
+# Method: Use a subquery with MAX() to find the highest payload, then filter matching boosters
+%%sql
+SELECT Booster_Version
+FROM SPACEXTBL
+WHERE PAYLOAD_MASS__KG_ = (
+    SELECT MAX(PAYLOAD_MASS__KG_)
+    FROM SPACEXTBL
+);
+
+* sqlite:///my_data1.db
+Done.
+
+# Task 9: List failed drone ship landings in 2015, grouped by month
+# Purpose: Analyze temporal patterns in landing failures for booster recovery missions
+# Note: SQLite lacks native month name support, so we extract month using substr(Date, 6, 2)
+%%sql
+SELECT 
+    substr(Date, 6, 2) AS Month,
+    Booster_Version,
+    Launch_Site,
+    Landing_Outcome
+FROM SPACEXTBL
+WHERE substr(Date, 0, 5) = '2015'
+AND Landing_Outcome LIKE '%Failure (drone ship)%';
+
+* sqlite:///my_data1.db
+Done.
+
+# Task 10: Rank landing outcomes between 2010-06-04 and 2017-03-20
+# Purpose: Analyze recovery performance across missions within a key operational period
+# Method: Filter by date range, group by Landing_Outcome, count occurrences, and sort descending
+%%sql
+SELECT Landing_Outcome, COUNT(*) AS Outcome_Count
+FROM SPACEXTBL
+WHERE Date BETWEEN '2010-06-04' AND '2017-03-20'
+GROUP BY Landing_Outcome
+ORDER BY Outcome_Count DESC;
+
+* sqlite:///my_data1.db
+Done.
+
