@@ -1,0 +1,508 @@
+# Install Folium for interactive geospatial mapping
+await piplite.install(['folium'])
+
+# Install Pandas for tabular data manipulation
+await piplite.install(['pandas'])
+
+# Import Folium for interactive geospatial mapping
+import folium
+
+# Import Pandas for tabular data manipulation
+import pandas as pd
+# Plugin to group nearby markers into clusters for better map readability
+from folium.plugins import MarkerCluster
+
+# Plugin to display real-time latitude and longitude under the mouse cursor
+from folium.plugins import MousePosition
+
+# Plugin to add custom HTML-based icons (e.g., labels or annotations) to the map
+from folium.features import DivIcon
+# Download and read the SpaceX launch site dataset from the cloud
+from js import fetch
+import io
+
+# Define the dataset URL
+URL = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DS0321EN-SkillsNetwork/datasets/spacex_launch_geo.csv'
+
+# Fetch the file and convert it to a readable format
+resp = await fetch(URL)
+spacex_csv_file = io.BytesIO((await resp.arrayBuffer()).to_py())
+
+# Load the CSV into a pandas DataFrame
+spacex_df = pd.read_csv(spacex_csv_file)
+# Select relevant sub-columns
+spacex_df = spacex_df[['Launch Site', 'Lat', 'Long', 'class']]
+
+# Group by launch site and keep the first occurrence
+launch_sites_df = spacex_df.groupby(['Launch Site'], as_index=False).first()
+
+# Keep only the columns needed for mapping
+launch_sites_df = launch_sites_df[['Launch Site', 'Lat', 'Long']]
+
+## Task 1: Mark all launch sites on a map
+# Create base map
+site_map = folium.Map(location=[launch_sites_df['Lat'].mean(), launch_sites_df['Long'].mean()], zoom_start=5)
+
+# Add markers for each unique launch site
+for index, row in launch_sites_df.iterrows():
+    folium.Marker(
+        location=[row['Lat'], row['Long']],
+        popup=row['Launch Site'],
+        icon=folium.Icon(color='blue', icon='rocket', prefix='fa')
+    ).add_to(site_map)
+
+# Display the map
+site_map
+
+# 🚀 Task 1: Mark All Launch Sites on a Map
+# Goal: Visualize the location of each SpaceX launch site using Folium.
+# 🗺️ Step 1: Create the Base Map Centered at NASA Johnson Space Center
+
+# Define the starting location: NASA Johnson Space Center in Houston, TX
+nasa_coordinate = [29.559684888503615, -95.0830971930759]
+
+# Create the base map centered at NASA
+site_map = folium.Map(location=nasa_coordinate, zoom_start=10)
+# Create a blue circle at NASA Johnson Space Center's coordinate with a popup label showing its name
+circle = folium.Circle(nasa_coordinate, radius=1000, color='#d35400', fill=True).add_child(folium.Popup('NASA Johnson Space Center'))
+# Create a blue circle at NASA Johnson Space Center's coordinate with a icon showing its name
+marker = folium.map.Marker(
+    nasa_coordinate,
+    # Create an icon as a text label
+    icon=DivIcon(
+        icon_size=(20,20),
+        icon_anchor=(0,0),
+        html='<div style="font-size: 12; color:#d35400;"><b>%s</b></div>' % 'NASA JSC',
+        )
+    )
+site_map.add_child(circle)
+site_map.add_child(marker)
+
+# and you should find a small yellow circle near the city of Houston and you can zoom-in to see a larger circle.
+
+# Now, let's add a circle for each launch site in data frame launch_sites
+
+#`folium.map.Marker(coordinate, icon=DivIcon(icon_size=(20,20),icon_anchor=(0,0), html='<div style="font-size: 12; color:#d35400;"><b>%s</b></div>' % 'label', ))`
+from folium import Circle, map
+from folium.features import DivIcon
+
+# Iterar sobre cada fila del DataFrame de sitios
+for index, row in launch_sites_df.iterrows():
+    coordinate = [row['Lat'], row['Long']]
+    site_name = row['Launch Site']
+    
+    # Crear círculo en el sitio
+    circle = Circle(
+        location=coordinate,
+        radius=1000,
+        color='#000000',
+        fill=True
+    ).add_child(folium.Popup(site_name))
+    
+    # Crear marcador con etiqueta textual
+    marker = map.Marker(
+        location=coordinate,
+        icon=DivIcon(
+            icon_size=(20,20),
+            icon_anchor=(0,0),
+            html='<div style="font-size: 12; color:#d35400;"><b>%s</b></div>' % site_name
+        )
+    )
+    
+    # Agregar al mapa
+    site_map.add_child(circle)
+    site_map.add_child(marker)
+
+# Mostrar el mapa enriquecido
+site_map
+
+# Initial the map
+site_map = folium.Map(location=nasa_coordinate, zoom_start=5)
+# For each launch site, add a Circle object based on its coordinate (Lat, Long) values. In addition, add Launch site name as a popup label
+
+# 📍 Iteración sobre cada sitio de lanzamiento para agregar círculos y etiquetas
+for index, row in launch_sites_df.iterrows():
+    coordinate = [row['Lat'], row['Long']]
+    site_name = row['Launch Site']
+
+    # 🔵 Círculo con etiqueta emergente
+    folium.Circle(
+        location=coordinate,
+        radius=1000,
+        color='#000000',         # Borde negro
+        fill=True,
+        fill_color='#f4d03f',    # Relleno amarillo
+        fill_opacity=0.6
+        ).add_child(folium.Popup(site_name)).add_to(site_map)
+
+# 🧭 Visualización del mapa enriquecido
+site_map
+
+## 🌍 Geolocation of Launch Sites
+
+### 🧭 Are all launch sites close to the Equator?
+
+**Not exactly.**  
+The Equator lies at latitude 0°, and the launch sites analyzed are significantly farther north:
+
+| Launch Site         | Approx. Latitude | Distance from Equator |
+|---------------------|------------------|------------------------|
+| CCAFS LC-40         | ~28.56° N        | ~3,174 km              |
+| KSC LC-39A          | ~28.61° N        | ~3,180 km              |
+| VAFB SLC-4E         | ~34.63° N        | ~3,850 km              |
+
+## Technical Insight:**  
+## Although not equatorial, Florida offers orbital advantages due to its relatively low latitude within the U.S., enabling efficient launches to equatorial and geosynchronous orbits. California, on the other hand, is optimal for polar and sun-synchronous trajectories.
+
+### 🌊 Are all launch sites located near the coast?
+## Yes, clearly.**  
+## All sites are positioned in coastal zones:
+
+## **CCAFS and KSC**: Located on Florida’s east coast, adjacent to the Atlantic Ocean.
+## **VAFB SLC-4E**: Situated on California’s west coast, facing the Pacific Ocean.
+
+## Technical Insight:**  
+## Coastal proximity allows safe launch trajectories over water, minimizing risk to populated areas. It also facilitates recovery operations for boosters and capsules, as seen in SpaceX missions.
+
+
+### 📘 Institutional Narrative
+
+## The analyzed launch sites are not in direct proximity to the Equator, but are strategically positioned to optimize specific orbital trajectories. All are located in coastal regions, enabling safe launch paths over the ocean and efficient recovery logistics. This geographic configuration reflects both technical criteria and safety considerations.
+#Task 2: Mark the success/failed launches for each site on the map
+#Next, let's try to enhance the map by adding the launch outcomes for each site, and see which sites have high success rates. Recall that data frame spacex_df has detailed launch records, and the class column indicates if this launch was successful or not
+spacex_df.tail(10)
+
+# Next, let's create markers for all launch records. If a launch was successful (class=1), then we use a green marker and if a launch was failed, we use a red marker (class=0)
+
+# Note that a launch only happens in one of the four launch sites, which means many launch records will have the exact same coordinate. Marker clusters can be a good way to simplify a map containing many markers having the same coordinate.
+
+# Let's first create a MarkerCluster object
+from folium.plugins import MarkerCluster
+
+# Crear el mapa base (si no lo has redefinido aún)
+site_map = folium.Map(location=nasa_coordinate, zoom_start=5)
+
+# Crear el objeto MarkerCluster y agregarlo al mapa
+marker_cluster = MarkerCluster().add_to(site_map)
+
+# Create a new column in launch_sites dataframe called marker_color to store the marker colors based on the class value
+
+# Apply a function to check the value of `class` column
+# If class=1, marker_color value will be green
+# If class=0, marker_color value will be red
+spacex_df['marker_color'] = spacex_df['class'].apply(lambda x: 'green' if x == 1 else 'red')
+
+# Función modular para codificar el resultado del lanzamiento en color
+# Verde representa éxito (class=1), rojo representa fallo (class=0)
+# Esta función permite trazabilidad y reutilización en otros contextos visuales
+def assign_marker_color(launch_outcome):
+    if launch_outcome == 1:
+        return 'green'
+    else:
+        return 'red'
+
+# Aplicamos la función sobre la columna 'class' para generar 'marker_color'
+spacex_df['marker_color'] = spacex_df['class'].apply(assign_marker_color)
+
+# For each launch result in spacex_df data frame, add a folium.Marker to marker_cluster
+# Añadimos el cluster de marcadores al mapa base
+site_map.add_child(marker_cluster)
+
+# Iteramos sobre cada lanzamiento en spacex_df
+# Creamos un marcador con coordenadas y color según el resultado
+for index, record in spacex_df.iterrows():
+    marker = folium.Marker(
+        location=[record['Lat'], record['Long']],
+        popup=record['Launch Site'],
+        icon=folium.Icon(color=record['marker_color'])  # Color del marcador según resultado
+    )
+    marker_cluster.add_child(marker)
+
+# Mostramos el mapa con todos los lanzamientos codificados por color
+site_map
+
+# TASK 3: Calculate the distances between a launch site to its proximities
+# Next, we need to explore and analyze the proximities of launch sites.
+# Let's first add a MousePosition on the map to get coordinate for a mouse over a point on the map. As such, while you are exploring the map, you can easily find the coordinates of any points of interests (such as railway)
+
+# Add Mouse Position to get the coordinate (Lat, Long) for a mouse over on the map
+formatter = "function(num) {return L.Util.formatNum(num, 5);};"
+mouse_position = MousePosition(
+    position='topright',
+    separator=' Long: ',
+    empty_string='NaN',
+    lng_first=False,
+    num_digits=20,
+    prefix='Lat:',
+    lat_formatter=formatter,
+    lng_formatter=formatter,
+)
+
+site_map.add_child(mouse_position)
+site_map
+
+# You can calculate the distance between two points on the map based on their Lat and Long values using the following method:
+
+from math import sin, cos, sqrt, atan2, radians
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # approximate radius of earth in km
+    R = 6373.0
+
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat2 = radians(lat2)
+    lon2 = radians(lon2)
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+# Mark down a point on the closest coastline using MousePosition and calculate the distance between the coastline point and the launch site.
+# find coordinate of the closet coastline
+# e.g.,: Lat: 28.56367  Lon: -80.57163
+# distance_coastline = calculate_distance(launch_site_lat, launch_site_lon, coastline_lat, coastline_lon)
+
+distance_coastline = calculate_distance(28.5623, -80.5774, 28.56367, -80.57163)
+print(f"Distancia al punto costero más cercano: {distance_coastline:.2f} km")
+
+After obtained its coordinate, create a folium.Marker to show the distance
+
+# Create and add a folium.Marker on your selected closest coastline point on the map
+# Display the distance between coastline point and launch site using the icon property 
+# for example
+# distance_marker = folium.Marker(
+#    coordinate,
+#    icon=DivIcon(
+#        icon_size=(20,20),
+#        icon_anchor=(0,0),
+#        html='<div style="font-size: 12; color:#d35400;"><b>%s</b></div>' % "{:10.2f} KM".format(distance),
+#        )
+#    )
+
+from folium.features import DivIcon
+
+# Coordenadas del punto costero más cercano
+coastline_coord = [28.56367, -80.57163]
+
+# Creamos un marcador con texto que muestra la distancia
+distance_marker = folium.Marker(
+    location=coastline_coord,
+    icon=DivIcon(
+        icon_size=(150, 20),
+        icon_anchor=(0, 0),
+        html='<div style="font-size: 12px; color:#d35400;"><b>{:.2f} KM</b></div>'.format(distance_coastline),
+    )
+)
+
+# Añadimos el marcador al mapa
+site_map.add_child(distance_marker)
+
+# Mostramos el mapa actualizado
+site_map
+
+#Draw a PolyLine between a launch site to the selected coastline point
+# Create a `folium.PolyLine` object using the coastline coordinates and launch site coordinate
+# lines=folium.PolyLine(locations=coordinates, weight=1)
+# Coordenadas del sitio de lanzamiento y del punto costero
+launch_site_coord = [28.5623, -80.5774]
+coastline_coord = [28.56367, -80.57163]
+
+# Creamos una línea entre ambos puntos
+line = folium.PolyLine(
+    locations=[launch_site_coord, coastline_coord],
+    weight=2,
+    color='blue',
+    opacity=0.7
+)
+
+# Añadimos la línea al mapa
+site_map.add_child(line)
+
+# Mostramos el mapa actualizado
+site_map
+
+# 🌐 Territorial Connectivity Dashboard  
+**Spatial and Narrative Findings Documentation**
+
+---
+
+## 🧭 Strategic Nodes
+
+| Node              | Coordinates             | Description |
+|------------------|-------------------------|-------------|
+| Coastal Point     | `29.016275, -80.928499` | Offshore near Daytona Beach; potential maritime route or environmental boundary |
+| Highway Point     | `27.04202, -80.362084`  | Inland Florida; strategic road near wetlands or protected zones |
+| Launch Site       | `28.5623, -80.5774`     | Cape Canaveral; institutional infrastructure for aerospace operations |
+| Orlando City      | `28.538336, -81.379234` | Major urban hub; relevant for logistics, population, and institutional reach |
+
+---
+
+## 📏 Calculated Distances
+
+| From         | To             | Distance (km) | Strategic Insight |
+|--------------|----------------|---------------|-------------------|
+| Highway      | Launch Site    | ~174 km       | Terrestrial access to institutional infrastructure |
+| Highway      | Coastal Point  | ~230 km       | Inland–coastal linkage for environmental or logistical planning |
+| Coastal Point| Launch Site    | ~65 km        | Maritime proximity to launch operations |
+| Orlando      | Launch Site    | ~77 km        | Urban–institutional corridor |
+
+> 📌 *Distances calculated using geodesic formulas and visualized with modular Folium maps.*
+
+---
+
+## 🧠 Narrative Implications
+
+- **Multiscale Connectivity**  
+  Links land, sea, and institutional infrastructure in a reproducible territorial narrative.
+
+- **Defendable Visuals**  
+  Each connection is mapped with labeled lines and markers to support traceability and onboarding.
+
+- **Expandable Modularity**  
+  This pattern can be replicated for railways, ports, impact zones, or environmental nodes.
+
+from folium.features import DivIcon
+
+
+#  🚆📍 Visualizar distancia entre sitio de lanzamiento y ciudad Orlando (obtenidas del mapa)
+
+# 🇪🇸 Coordenadas del sitio de lanzamiento (Cape Canaveral)
+launch_site_coord = [28.5623, -80.5774]
+
+# 🇪🇸 Coordenadas del centro de Orlando (obtenidas del mapa)
+poi_coord = [28.530096, -81.369235]  # ← Coordenadas reales de Orlando
+
+# 🇪🇸 Calcular distancia / 🇬🇧 Calculate distance
+distance_poi = calculate_distance(
+    launch_site_coord[0], launch_site_coord[1],
+    poi_coord[0], poi_coord[1]
+)
+
+# 🇪🇸 Crear marcador con texto de distancia / 🇬🇧 Create marker with distance label
+distance_marker = folium.Marker(
+    location=poi_coord,
+    icon=DivIcon(
+        icon_size=(150, 20),
+        icon_anchor=(0, 0),
+        html='<div style="font-size: 12px; color:#2c3e50;"><b>{:.2f} KM</b></div>'.format(distance_poi),
+    )
+)
+
+# 🇪🇸 Crear línea entre sitio de lanzamiento y Orlando / 🇬🇧 Draw line between launch site and Orlando
+line = folium.PolyLine(
+    locations=[launch_site_coord, poi_coord],
+    weight=2,
+    color='purple',
+    opacity=0.6
+)
+
+# 🇪🇸 Añadir elementos al mapa / 🇬🇧 Add elements to the map
+site_map.add_child(distance_marker)
+site_map.add_child(line)
+
+# 🇪🇸 Mostrar mapa actualizado / 🇬🇧 Display updated map
+site_map
+
+
+# 🚆📍 Visualizar distancia entre sitio de lanzamiento y línea férrea
+from folium.features import DivIcon
+
+# 🇪🇸 Coordenadas del sitio de lanzamiento (Cape Canaveral)
+launch_site_coord = [28.5623, -80.5774]
+
+# 🇪🇸 Coordenadas del punto de la línea férrea (obtenidas con MousePosition)
+railway_coord = [26.715887, -80.908319]
+
+# 🇪🇸 Calcular distancia / 🇬🇧 Calculate distance
+distance_railway = calculate_distance(
+    launch_site_coord[0], launch_site_coord[1],
+    railway_coord[0], railway_coord[1]
+)
+
+# 🇪🇸 Crear marcador con texto de distancia / 🇬🇧 Create marker with distance label
+railway_marker = folium.Marker(
+    location=railway_coord,
+    icon=DivIcon(
+        icon_size=(150, 20),
+        icon_anchor=(0, 0),
+        html='<div style="font-size: 12px; color:#34495e;"><b>{:.2f} KM</b></div>'.format(distance_railway),
+    )
+)
+
+# 🇪🇸 Crear línea entre sitio de lanzamiento y línea férrea / 🇬🇧 Draw line between launch site and railway
+railway_line = folium.PolyLine(
+    locations=[launch_site_coord, railway_coord],
+    weight=2,
+    color='darkred',
+    opacity=0.6
+)
+
+# 🇪🇸 Añadir elementos al mapa / 🇬🇧 Add elements to the map
+site_map.add_child(railway_marker)
+site_map.add_child(railway_line)
+
+# 🇪🇸 Mostrar mapa actualizado / 🇬🇧 Display updated map
+site_map
+
+# 🇪🇸 Coordenadas del punto en la imagen / 🇬🇧 Coordinates from highway
+road_coord = [27.04202, -80.362084]
+
+# 🇪🇸 Coordenadas de referencia (ejemplo: Cape Canaveral) / 🇬🇧 Reference point (e.g., launch site)
+reference_coord = [28.5623, -80.5774]
+
+# 🇪🇸 Calcular distancia / 🇬🇧 Calculate distance
+distance_to_road = calculate_distance(
+    road_coord[0], road_coord[1],
+    reference_coord[0], reference_coord[1]
+)
+
+# 🇪🇸 Visualizar en el mapa / 🇬🇧 Display on map
+folium.Marker(location=road_coord, popup="Carretera", icon=folium.Icon(color='orange')).add_to(site_map)
+folium.Marker(location=reference_coord, popup="Sitio de referencia", icon=folium.Icon(color='blue')).add_to(site_map)
+folium.PolyLine(locations=[road_coord, reference_coord], color='purple', weight=2.5, opacity=0.7).add_to(site_map)
+
+# 🇪🇸 Mostrar distancia como etiqueta / 🇬🇧 Show distance as label
+folium.Marker(
+    location=[(road_coord[0] + reference_coord[0]) / 2, (road_coord[1] + reference_coord[1]) / 2],
+    icon=folium.DivIcon(html=f'<div style="font-size: 12px; color: #2c3e50;"><b>{distance_to_road:.2f} KM</b></div>')
+).add_to(site_map)
+
+# 🇪🇸 Mostrar mapa / 🇬🇧 Display map
+site_map
+
+# 🇪🇸 Coordenadas del punto costero / 🇬🇧 Coastal coordinates
+coastal_coord = [29.016275, -80.928499]
+
+# 🇪🇸 Coordenadas del punto de carretera / 🇬🇧 Highway coordinates
+road_coord = [27.04202, -80.362084]
+
+# 🇪🇸 Calcular distancia / 🇬🇧 Calculate distance
+distance_coast_road = calculate_distance(
+    coastal_coord[0], coastal_coord[1],
+    road_coord[0], road_coord[1]
+)
+
+# 🇪🇸 Crear mapa base / 🇬🇧 Create base map
+map_coast_road = folium.Map(location=[28.0, -80.6], zoom_start=8)
+
+# 🇪🇸 Añadir marcadores / 🇬🇧 Add markers
+folium.Marker(location=coastal_coord, popup="Punto costero", icon=folium.Icon(color='cadetblue')).add_to(map_coast_road)
+folium.Marker(location=road_coord, popup="Carretera", icon=folium.Icon(color='orange')).add_to(map_coast_road)
+
+# 🇪🇸 Dibujar línea / 🇬🇧 Draw line
+folium.PolyLine(locations=[coastal_coord, road_coord], color='purple', weight=2.5, opacity=0.7).add_to(map_coast_road)
+
+# 🇪🇸 Mostrar distancia como etiqueta / 🇬🇧 Show distance label
+folium.Marker(
+    location=[(coastal_coord[0] + road_coord[0]) / 2, (coastal_coord[1] + road_coord[1]) / 2],
+    icon=folium.DivIcon(html=f'<div style="font-size: 12px; color: #2c3e50;"><b>{distance_coast_road:.2f} KM</b></div>')
+).add_to(map_coast_road)
+
+# 🇪🇸 Mostrar mapa / 🇬🇧 Display map
+map_coast_road
