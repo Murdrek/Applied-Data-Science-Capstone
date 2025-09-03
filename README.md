@@ -10,25 +10,20 @@ This repository contains a series of modular, bilingual labs focused on collecti
 
 ## 📁 Repository Structure Overview
 
+## 📁 Repository Structure Overview
+
 | Module | Notebook(s) | Strategic Description |
 |--------|-------------|------------------------|
 | 1️⃣ Data Collection via API | `LAB-1_jupyter-labs-spacex-data-collection-api-CODE.ipynb` | Retrieve launch data from public API with structured validation |
-
-| 2️⃣ Web Scraping & Recovery |<br>`LAB-2_jupyter-labs-webscraping.ipynb`<br>`LAB-2_jupyter-labs-webscraping_code.ipynb` | Recover lost records using web scraping with bilingual documentation and traceability |
-
+| 2️⃣ Web Scraping & Recovery | `LAB-1_jupyter-labs-webscraping.ipynb`<br>`LAB-2_jupyter-labs-webscraping.ipynb`<br>`LAB-3_jupyter-labs-webscraping_code.ipynb` | Recover lost records using web scraping with bilingual documentation and traceability |
 | 3️⃣ Data Wrangling & Cleaning | `LAB-3_jupyter-spacex-Data wrangling.ipynb` | Structure and clean datasets for downstream analysis |
-
 | 4️⃣ SQL-Based Exploration | `LAB-4_jupyter-labs-eda-sql-courseera.sqlite.ipynb` | Perform exploratory analysis using SQL queries on structured data |
-
 | 5️⃣ Exploratory Data Visualization | `LAB-5_EDA_with_Visualization.ipynb`<br>`LAB-5_Exploratory_Data_Analysis_(EDA)_CODE.ipynb` | Visualize patterns and distributions using strategic plots |
-
 | 6️⃣ Interactive Territorial Mapping | `LAB-6_Interactive_Visual_Analytics_with_Folium-CODE.ipynb` | Map geospatial relationships with Folium and institutional labeling |
-
 | 7️⃣ Interactive Dashboarding | `LAB-7_Build_an_Interactive_Dashboard_with_Plotly_Dash_CODE.py`<br>`LAB-7_Hands-on_Lab_Build_an_Interactive_Dashboard_with_Plotly_Dash-1.png`<br>`LAB-7_Hands-on_Lab_Build_an_Interactive_Dashboard_with_Plotly_Dash-2.png` | Build stakeholder-facing dashboards with dropdowns, sliders, and callbacks |
-
 | 8️⃣ Machine Learning Prediction | `LAB-8_Complete_the_Machine_Learning_Prediction_CODE.ipynb` | Train and compare classifiers to predict launch success with institutional justification |
-
 | 📘 README | `README.md` | Executive summary and bilingual narrative of the repository’s modular structure |
+
 
 
 
