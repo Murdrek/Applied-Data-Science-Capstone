@@ -34,6 +34,28 @@ df = pd.read_csv(dataset_part_2_csv)
 # Preview the first 5 rows
 df.head(5)
 
+
+TASK 1: Visualize the relationship between Flight Number and Launch Site
+Use the function catplot to plot FlightNumber vs LaunchSite, set the parameter x parameter to FlightNumber,set the y to Launch Site and set the parameter hue to 'class'
+
+# Plot a scatter point chart with x axis to be Flight Number and y axis to be the launch site, and hue to be the class value
+
+# Visualize launch outcomes across flight number and launch site
+sns.catplot(
+    x="FlightNumber", 
+    y="LaunchSite", 
+    hue="Class", 
+    data=df, 
+    aspect=2, 
+    height=6
+)
+
+# Axis labels for clarity
+plt.xlabel("Flight Number", fontsize=16)
+plt.ylabel("Launch Site", fontsize=16)
+plt.title("Launch Outcome by Flight Number and Site", fontsize=18)
+plt.show()
+
 # 📊 Flight Experience vs. Payload Mass and Launch Outcome
 # 🎯 Objective
 # Visualize how Flight Number (proxy for accumulated launch experience) and Payload Mass relate to the launch outcome (Class), where:
