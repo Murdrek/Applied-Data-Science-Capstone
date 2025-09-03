@@ -6,11 +6,7 @@ This repository contains a series of modular, bilingual labs focused on collecti
 
 ## 📘 Lab Modules Overview
 
-## 📁 Repository Structure Overview (Ascendente y Modular)
-
-## 📁 Repository Structure Overview
-
-## 📁 Repository Structure Overview
+## 📁 Repository Structure Overview 
 
 | Module | Notebook(s) | Strategic Description |
 |--------|-------------|------------------------|
