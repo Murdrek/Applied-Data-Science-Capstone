@@ -25,6 +25,7 @@ This repository contains a series of modular, bilingual labs focused on collecti
 
 
 
+
 ### 🧾 Executive Summary: Modules 1–4  
 **Reproducible Data Science for Institutional and Territorial Impact**
 
