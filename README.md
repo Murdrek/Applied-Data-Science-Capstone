@@ -6,20 +6,35 @@ This repository contains a series of modular, bilingual labs focused on collecti
 
 ## 📘 Lab Modules Overview
 
-## 📘 Repository Structure Overview
+### 📘 Multi-Modal America – Repository Structure
 
-| Lab | Notebook (.ipynb) | CODE File | Strategic Description |
-|-----|-------------------|-----------|------------------------|
-| 1️⃣ Data Collection via API | LAB-1_jupyter-labs-spacex-data-collection-api.ipynb | LAB-1_jupyter-labs-spacex-data-collection-api-CODE.ipynb | Retrieve launch data from public API with structured validation |
-| 2️⃣ Web Scraping | LAB-2_jupyter-labs-webscraping.ipynb | LAB-2_jupyter-labs-webscraping-CODE.ipynb | Recover missing records using bilingual scraping and traceable logic |
-| 3️⃣ SQL & Wrangling | LAB-3_jupyter-labs-sql-coursera_sqlite_wrangling.ipynb | LAB-3_jupyter-labs-sql-coursera_sqlite_wrangling-code.ipynb | Clean and explore structured data using SQL and reproducible scripts |
-| 4️⃣ SQL Exploratory Analysis | LAB-3_jupyter-labs-eda-sql-coursera_sqlite.ipynb | LAB-3_jupyter-labs-eda-sql-coursera_sqlite-CODE.ipynb | Perform exploratory analysis with SQL queries and institutional traceability |
-| 5️⃣ Exploratory Visualization | LAB-5_EDA_with_Visualization.ipynb | LAB-5_Exploratory_Data_Analysis_(EDA)_CODE.ipynb | Visualize patterns and distributions using strategic plots |
-| 6️⃣ Territorial Mapping | LAB-6_Interactive_Visual_Analytics_with_Folium.ipynb | LAB-6_Interactive_Visual_Analytics_with_Folium-CODE.ipynb | Map geospatial relationships using Folium with institutional labeling |
-| 7️⃣ Interactive Dashboard | LAB-7_Build_an_Interactive_Dashboard_with_Plotly_Dash_CODE.py<br>LAB-7_Plotly_Dash-1.png<br>LAB-7_Plotly_Dash-2.png | — | Build stakeholder-facing dashboards with filters, sliders, and interactive callbacks |
-| 8️⃣ Machine Learning Prediction | LAB-8_Complete_the_Machine_Learning_Prediction.ipynb | LAB-8_Complete_the_Machine_Learning_Prediction-code.ipynb | Train and compare classifiers to predict landing success with reproducible logic |
-| 📘 README | README.md | — | Bilingual executive summary with institutional narrative and onboarding guidance |
+#### 1️⃣ Introduction to M4
 
+| Notebook / Asset                          | Strategic Description                                                  |
+|------------------------------------------|------------------------------------------------------------------------|
+| `M4_Intro.ipynb`                          | America derived from public data and structured visualization          |
+| `M4_Strategy.ipynb`                       | Strategic framing of multi-modal analysis                              |
+| `Exploratory_Visualization.ipynb`        | Initial visual exploration of M4 indicators                            |
+| `Exploratory_Visualization_II.ipynb`     | Extended visual mapping and narrative labeling                         |
+
+#### 2️⃣ EDA / Machine Learning
+
+| Notebook / Asset                          | Strategic Description                                                  |
+|------------------------------------------|------------------------------------------------------------------------|
+| `EDA_ML.ipynb`                            | Exploratory data analysis and classification modeling                  |
+| `EDA_ML_II.ipynb`                         | Model comparison and interpretability synthesis                        |
+
+#### 3️⃣ ECON
+
+| Notebook / Asset                          | Strategic Description                                                  |
+|------------------------------------------|------------------------------------------------------------------------|
+| `ECON.ipynb`                              | Economic indicators and institutional implications                     |
+
+#### 4️⃣ Presentation
+
+| Notebook / Asset                          | Strategic Description                                                  |
+|------------------------------------------|------------------------------------------------------------------------|
+| `Presentation.pptx`                       | Executive summary of findings, models, and institutional impact        |
 
 
 
